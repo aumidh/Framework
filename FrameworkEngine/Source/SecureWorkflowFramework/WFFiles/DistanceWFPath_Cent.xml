@@ -1,0 +1,11 @@
+<workflow>
+<Sequence>
+<And_Join>
+     <And_Split>
+	<Service url="http://localhost:8080/serviceA" name="serviceA"/>
+	<Service url="http://localhost:8080/serviceB" name="serviceB"/>
+    </And_Split>
+		<Service url="http://localhost:8080/DistanceCalculator" name="DistanceCalculator"/>
+</And_Join>
+</Sequence>
+</workflow>

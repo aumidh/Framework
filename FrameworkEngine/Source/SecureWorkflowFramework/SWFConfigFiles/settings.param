@@ -1,0 +1,16 @@
+dnUser=C:UK,L:Glasgow,O:UniversityOfGlasgow,OU:NeSc,CN:sardar hussain,email:s.hussain@gla.ac.uk
+dnEngine=C:UK,L:Glasgow,O:UniversityOfGlasgow,OU:NeSc,CN:DamesEE
+# workflowType will have two values centralized/decentralized
+workflowType=decentralized
+# Distance Scenario Files are CWCS_PushModel.xml and CentWfPath.xml
+# Where Glucose scenario files are Glucose_CWCS_PushModel.xml and Glucose_CentWfPath.xml
+#workflowFile=WFFiles\DistanceWF_Cent.xml
+#workflowExecPathFile=WFFiles\DistanceWFPath_Cent.xml
+
+workflowFile=WFFiles\MathWF_DeCent.xml
+workflowExecPathFile=WFFiles\MathWFPath_DeCent.xml
+
+# SecurityModel will have three values {CentralizedPull,DecentralizedPush,DecentralizedPull}
+securityModel=decentralizedpull
+# mode will have two values {wo_security,w_security}
+mode=w_security
