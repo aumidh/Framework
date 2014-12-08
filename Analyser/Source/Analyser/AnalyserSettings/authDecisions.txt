@@ -1,0 +1,3 @@
+serviceA=false
+serviceB=true
+DistanceCalculator=true

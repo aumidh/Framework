@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<!-- Attributes -->
+<xs:attribute name="url" type="xs:string"/>
+<xs:attribute name="name" type="xs:string"/>
+
+<!-- Elements -->
+<xs:element name="Service" type="ServiceElement" />
+ <xs:complexType name="ServiceElement">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute ref="url" use="required"/>
+		<xs:attribute ref="name" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  
+<xs:element name="workflow">
+  <xs:complexType>
+    <xs:sequence minOccurs="1" maxOccurs="1">
+		<xs:element ref="Sequence"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+<xs:element name="Sequence">
+  <xs:complexType>
+    <xs:sequence>
+	   <xs:choice minOccurs="1" maxOccurs="unbounded">
+			<xs:element ref="Service"/>
+			<xs:element ref="Sequence"/>
+			<xs:element ref="Or_Join"/>
+			<xs:element ref="And_Join"/>
+			<xs:element ref="Or_Split"/>
+			<xs:element ref="And_Split"/>
+			<xs:element ref="Xor_Split"/>
+			<xs:element ref="Xor_Join"/>
+       </xs:choice>	
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+<xs:element name="Or_Join">
+  <xs:complexType>
+    <xs:sequence >
+       <xs:choice minOccurs="1" maxOccurs="1">
+			<xs:element ref="Service"/>
+			<xs:element ref="Sequence"/>
+			<xs:element ref="Or_Join"/>
+			<xs:element ref="And_Join"/>
+			<xs:element ref="Or_Split"/>
+			<xs:element ref="And_Split"/>
+			<xs:element ref="Xor_Split"/>
+			<xs:element ref="Xor_Join"/>
+       </xs:choice>
+		<xs:element ref="Service"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+<xs:element name="And_Join">
+  <xs:complexType>
+    <xs:sequence >
+       <xs:choice minOccurs="1" maxOccurs="1">
+			<xs:element ref="Service"/>
+			<xs:element ref="Sequence"/>
+			<xs:element ref="Or_Join"/>
+			<xs:element ref="And_Join"/>
+			<xs:element ref="Or_Split"/>
+			<xs:element ref="And_Split"/>
+			<xs:element ref="Xor_Split"/>
+			<xs:element ref="Xor_Join"/>
+       </xs:choice>	
+	   <xs:element ref="Service"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+<xs:element name="Or_Split">
+  <xs:complexType>
+    <xs:sequence >
+       <xs:choice minOccurs="2" maxOccurs="unbounded">
+			<xs:element ref="Service"/>
+			<xs:element ref="Sequence"/>
+			<xs:element ref="Or_Join"/>
+			<xs:element ref="And_Join"/>
+			<xs:element ref="Or_Split"/>
+			<xs:element ref="And_Split"/>
+			<xs:element ref="Xor_Split"/>
+			<xs:element ref="Xor_Join"/>
+       </xs:choice>	
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+<xs:element name="And_Split">
+  <xs:complexType>
+    <xs:sequence >
+       <xs:choice minOccurs="2" maxOccurs="unbounded">
+			<xs:element ref="Service"/>
+			<xs:element ref="Sequence"/>
+			<xs:element ref="Or_Join"/>
+			<xs:element ref="And_Join"/>
+			<xs:element ref="Or_Split"/>
+			<xs:element ref="And_Split"/>
+			<xs:element ref="Xor_Split"/>
+			<xs:element ref="Xor_Join"/>
+       </xs:choice>	
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+<xs:element name="Xor_Split">
+  <xs:complexType>
+    <xs:sequence >
+       <xs:choice minOccurs="2" maxOccurs="unbounded">
+			<xs:element ref="Service"/>
+			<xs:element ref="Sequence"/>
+			<xs:element ref="Or_Join"/>
+			<xs:element ref="And_Join"/>
+			<xs:element ref="Or_Split"/>
+			<xs:element ref="And_Split"/>
+			<xs:element ref="Xor_Split"/>
+			<xs:element ref="Xor_Join"/>
+       </xs:choice>	
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+<xs:element name="Xor_Join">
+  <xs:complexType>
+    <xs:sequence >
+       <xs:choice minOccurs="1" maxOccurs="1">
+			<xs:element ref="Service"/>
+			<xs:element ref="Sequence"/>
+			<xs:element ref="Or_Join"/>
+			<xs:element ref="And_Join"/>
+			<xs:element ref="Or_Split"/>
+			<xs:element ref="And_Split"/>
+			<xs:element ref="Xor_Split"/>
+			<xs:element ref="Xor_Join"/>
+       </xs:choice>	
+	   <xs:element ref="Service"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:element>
+</xs:schema> 
