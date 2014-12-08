@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Services>
+<Service>
+	<EndPoint>http://127.0.0.1:8080/axis2/services/ServiceA</EndPoint>
+	<Namespace>http://services.sowf.gla</Namespace>
+	<ActionName>urn:getPointA</ActionName>
+	<Parameters>
+	</Parameters>
+</Service>
+<Service>
+	<EndPoint>http://127.0.0.1:8080/axis2/services/ServiceB</EndPoint>
+	<Namespace>http://services.sowf.gla</Namespace>
+	<ActionName>urn:getPointB</ActionName>
+	<Parameters>
+	</Parameters>
+</Service>
+<Service>
+	<EndPoint>http://127.0.0.1:8080/axis2/services/DistanceCalculator</EndPoint>
+	<Namespace>http://services.sowf.gla</Namespace>
+	<ActionName>urn:calculateDistance</ActionName>
+	<Parameters>
+		<Parameter>
+			<Name>xA</Name>
+			<Value>10</Value>
+		</Parameter>
+		<Parameter>
+			<Name>yA</Name>
+			<Value>20</Value>
+		</Parameter>
+		<Parameter>
+			<Name>xB</Name>
+			<Value>20</Value>
+		</Parameter>
+		<Parameter>
+			<Name>yB</Name>
+			<Value>30</Value>
+		</Parameter>
+	</Parameters>
+</Service>
+</Services>

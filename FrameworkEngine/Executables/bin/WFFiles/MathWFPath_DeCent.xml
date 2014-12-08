@@ -1,0 +1,6 @@
+<workflow>
+<Sequence>
+<Service url="http://localhost:8080/MathSolver" name="MathSolver"/>
+<Service url="http://localhost:8080/VarienceCalculator" name="VarienceCalculator"/>
+</Sequence>
+</workflow>
