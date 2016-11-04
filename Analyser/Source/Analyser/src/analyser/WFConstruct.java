@@ -4,7 +4,7 @@ import java.util.List;
 import org.w3c.dom.Element;
 
 /**
- * This class provides the hierarchical structure of the constructs that resembel the XML file structure.
+ * This class provides the hierarchical structure of the constructs that resemble the XML file structure.
  * The object of this class store one construct and their child constructs which would be a list of objects of
  * this class too and so on... 
  * @author Sardar Hussain
