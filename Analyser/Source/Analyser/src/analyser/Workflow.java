@@ -2,6 +2,7 @@ package analyser;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,8 +24,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
- * This class is the main class of the Analyzer component. This class read the WF XML file.
- * and then find out the execution status of WF based on given credentials of the contained services.
+ * The main class of the Analyzer component. This class provides functions to read the WF xml file
+ * and to figure out the execution status of WF based on the given credentials of services contained in the WF file.
  * @author Sardar Hussain
  *
  */
@@ -32,7 +33,7 @@ public class Workflow
 {
 	private List<WFConstruct> constructs;
 	private Element wfElement;
-	Hashtable<String,Boolean> decisions=new Hashtable<String,Boolean>();
+	private Hashtable<String,Boolean> decisions=new Hashtable<String,Boolean>();
 	public int noOfOperators;
 	public int workflowSize;
 	private String wfFile;
@@ -43,37 +44,47 @@ public class Workflow
 		wfFile="";
 		constructs=new ArrayList<WFConstruct>();
 		authDecisionFile="";
+		wfElement=null;
 	}
-	public boolean readSettings()
+	private boolean readSettings()
 	{
 		
-		try {
 			String paramFile=System.getProperty("user.dir") + "//AnalyserSettings//settings.param";
-			BufferedReader br = new BufferedReader(new FileReader(paramFile));
-			String line="";
-			while ( (line = br.readLine()) != null) {
-				if (line.startsWith("#") ) { 
-					continue;
-				}
-				String[] parts = line.split("=");
-				if(parts[0].toLowerCase().startsWith("workflowfile")){
-					wfFile=parts[1];
-				}
-				if(parts[0].toLowerCase().startsWith("authdecisions")){
-					authDecisionFile=parts[1];
-				}
+			BufferedReader br=null;
+			try {
+					br = new BufferedReader(new FileReader(paramFile));
+			} catch (FileNotFoundException e) {
+				System.out.println("The program can't find out the settings file and therefore exiting. Please provide a valid settings file.");
+				System.exit(1);
 			}
-			br.close();
-			return true;
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-		return false;
+			String line="";
+			try {
+				while ( (line = br.readLine()) != null) {
+					if (line.startsWith("#") ) { 
+						continue;
+					}
+					String[] parts = line.split("=");
+					if(parts[0].toLowerCase().startsWith("workflowfile")){
+						wfFile=parts[1];
+					}
+					if(parts[0].toLowerCase().startsWith("authdecisions")){
+						authDecisionFile=parts[1];
+					}
+				}
+				br.close();
+			} catch (IOException e) {
+				System.out.println(e.getMessage());
+				return false;
+			}
+			if(wfFile.isEmpty() == false && authDecisionFile.isEmpty() == false)
+				return true;
+			else{
+				System.out.println("The settings file should include file location for the workflow file and authorization decisions file.");
+				return false;
+			}
 	}
 	/**
-	 * The starter function which triggers the process of checking execution
-	 * of the workflow based on the constructs.
+	 * This function triggers the process of checking the execution workflow.
 	 * @throws Exception 
 	 */
 	public ExecutableStatus startProcess() throws Exception
@@ -81,20 +92,28 @@ public class Workflow
 		if(readSettings()==true)
 		{
 			getAuthDecisionFromFile();
-			loadXML();
+			getWFNodeFromXML();
 			getConstructs();
 			return checkWFExecutable();
 		}
 		else
 			throw new Exception("Unable to read settings file.");
 	}
-	public void getAuthDecisionFromFile()
+	/**
+	 * This function read the authorization decisions for each service, which is currently provided from a text file.
+	 */
+	private void getAuthDecisionFromFile()
 	{
+		BufferedReader br=null;
 		try {
-			
-			String statusFile= authDecisionFile;
-			BufferedReader br = new BufferedReader(new FileReader(statusFile));
-			String line="";
+				br = new BufferedReader(new FileReader(authDecisionFile));
+		} catch (FileNotFoundException e) {
+			System.out.println("The specified authorization decision file is not available. Please provide a valid authorization file and then re-run the program");
+			System.out.println("The program will now exit.");
+			System.exit(0);
+		}
+		String line="";
+		try {
 			while ( (line = br.readLine()) != null) 
 			{
 				if (line.startsWith("#") ) { 
@@ -117,17 +136,16 @@ public class Workflow
 				}
 			}
 			br.close();
+		} catch (IOException e) {
+			System.out.println("The program is unable to read the provided file and therefore exiting. Please check the format of the provided file.");
+			System.exit(1);
 		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+		
 	}
 	/**
-	 * The main function call this method in order to load the XML file and to
-	 * create the object of the workflow class, which further deals with all the
-	 * necessary processing.
+	 * This method read the workflow XML file and retreive the root workflow node.
 	 */
-	public void loadXML()
+	private void getWFNodeFromXML()
 	{
 		try 
 		{
@@ -145,23 +163,24 @@ public class Workflow
 					break;
 				}
 			}
-		} catch (SAXException e) 
+			if(wfElement==null){
+				System.out.println("The XML file doesn't contain the root workflow node. Please provide a correct XML file, where the root node should be named \"Workflow\"");
+				System.exit(1);
+			}
+		} catch (Exception e) 
 		{
+			System.out.println("There is a problem while reading the provided XML file and therefore, the program is exiting. The full details of the error is provided below,");
 			e.printStackTrace();
-		} catch (IOException e) 
-		{
-			e.printStackTrace();
-		}catch (ParserConfigurationException e) 
-		{
-			e.printStackTrace();
-		} 
+			System.exit(1);
+		}
 	}
 	/**
-	 * This function will be called for each "Service" constructs during the recursive process 
-	 * of reading the workflow constructs to decide whether the Service is authorized or not based on
-	 * the decisions we stored earlier for each service.
+	 * This function return the corresponding execution status when called. This status
+	 * is obtained from the decisions list (where the list is currently populated from a file as a proof of concept. However, in case the when the authorization
+	 * decision can be obtained from external sources then this function should implement the procedure of obtaining the authorization decision for the given service)
+	 * @param strName the name of the service, for which the authorization status is required.
 	 */
-	public boolean isServiceExecutable(String strName)
+	private boolean isServiceExecutable(String strName)
 	{
 		if(decisions.size()>0)
 		{
@@ -170,147 +189,74 @@ public class Workflow
 		return false;
 	}
 	/**
-	 * The recursive function that read every workflow construct and check their status
-	 * of execution based on the type of the construct and finally on the service 
-	 * authorization decision. The input parameter of this function is a construct, 
-	 * which initially will be the main construct and then it will be called with 
-	 * every child construct untill it encounter a service construct.  
+	 * This function check the execution status of a given node. This is a recursive function, which call all the child node 
+	 * in order to obtain the execution status of the given node. Thus, if call with the first node of the workflow file i.e. (root node of the exml file)
+	 * then it will return the execution status of the workflow.  
+	 * @param con The workflow node.
 	 */
-	public ExecutableStatus getExecutionStatus(WFConstruct con)
-	{
-		if(con.getConstructType()==WFConstructsType.AND_SPLIT || 
-				con.getConstructType()==WFConstructsType.AND_JOIN || 
-				con.getConstructType()==WFConstructsType.SEQUENCE)
-		{
-			List<WFConstruct> conList=con.getList();
-			boolean isPE=false;
-			for (int i=0;i<conList.size();i++)
+	private ExecutableStatus getExecutionStatus(WFConstruct con){
+		List<WFConstruct> conList=con.getList();
+		boolean isPE=false,isNE=false,isE=false;
+		for (int i=0;i<conList.size();i++){
+			WFConstruct childNode=conList.get(i);
+			if(childNode.getConstructType()==WFConstructsType.SERVICE)
 			{
-				WFConstruct t=conList.get(i);
-				if(t.getConstructType()==WFConstructsType.SERVICE)
+				boolean res=isServiceExecutable(childNode.getName());
+				if(res==true)
 				{
-					boolean res=isServiceExecutable(t.getName());
-					if(res==false)
-					{
-						t.setStatus(ExecutableStatus.Non_Executable);
+					isE=true;
+					childNode.setStatus(ExecutableStatus.Executable);
+				}
+				else{
+					isNE=true;
+					childNode.setStatus(ExecutableStatus.Non_Executable);
+					if(con.getConstructType()==WFConstructsType.OR_SPLIT || con.getConstructType()==WFConstructsType.XOR_SPLIT){
+						if(isE==true || isPE==true) 
+							return ExecutableStatus.Potential_Executable;
+					}
+					else{
 						return ExecutableStatus.Non_Executable;
 					}
-					t.setStatus(ExecutableStatus.Executable);
 				}
-				else
-				{
-					ExecutableStatus _status=getExecutionStatus(t);
-					if(_status==ExecutableStatus.Non_Executable)
-					{
-						t.setStatus(ExecutableStatus.Non_Executable);
+			}else{ // End of Service
+				ExecutableStatus _status = getExecutionStatus(childNode);
+				if (_status == ExecutableStatus.Non_Executable){
+					isNE = true;
+					if(con.getConstructType()==WFConstructsType.AND_JOIN || con.getConstructType()==WFConstructsType.AND_SPLIT || con.getConstructType()==WFConstructsType.SEQUENCE)
 						return ExecutableStatus.Non_Executable;
-					}
-					else if(_status==ExecutableStatus.Potential_Executable)
-						isPE=true;
-					t.setStatus(_status);
-				}
-			}
-			if(isPE==true)
-				return ExecutableStatus.Potential_Executable;
-			else
-				return ExecutableStatus.Executable;
-		}
-		else if(con.getConstructType()==WFConstructsType.OR_JOIN || 
-				con.getConstructType()==WFConstructsType.XOR_JOIN)
-		{
-			List<WFConstruct> conList=con.getList();
-			boolean isPE=false,isNE=false,isE=false;
-			for (int i=0;i<conList.size();i++)
-			{
-				WFConstruct t=conList.get(i);
-				if(t.getConstructType()==WFConstructsType.SERVICE)
-				{
-					boolean res=isServiceExecutable(t.getName());
-					if(res==false)
-					{
-						t.setStatus(ExecutableStatus.Non_Executable);
-						return ExecutableStatus.Non_Executable;
-					}
-					else
-						isE=true;
-					t.setStatus(ExecutableStatus.Executable);
-				}
-				else
-				{
-					ExecutableStatus _status=getExecutionStatus(t);
-					t.setStatus(_status);
-					if(_status==ExecutableStatus.Non_Executable)
-						isNE=true;
-					else if(_status==ExecutableStatus.Potential_Executable)
-						isPE=true;
-					else
-						isE=true;
-				}
-			}
-			if(isE==true && isPE==false && isNE==false) //When all child constructs are executable
-				return ExecutableStatus.Executable;
-			else if(isPE==true) 	//When any child constructs are Potential Executable
-				return ExecutableStatus.Potential_Executable;
-			else          // When there is no construct PE or E and irrespective of SERVICE is E or NE
-				return ExecutableStatus.Non_Executable;
-		}
-		else if(con.getConstructType()==WFConstructsType.OR_SPLIT || 
-				con.getConstructType()==WFConstructsType.XOR_SPLIT)
-		{
-			List<WFConstruct> conList=con.getList();
-			boolean isE=false,isPE=false, isNE=false;
-			for (int i=0;i<conList.size();i++)
-			{
-				WFConstruct t=conList.get(i);
-				if(t.getConstructType()==WFConstructsType.SERVICE)
-				{
-					boolean res=isServiceExecutable(t.getName());
-					if(res==true)
-					{
-						t.setStatus(ExecutableStatus.Executable);
-						isE=true;
-					}
-					else
-					{
-						isNE=true;
-						t.setStatus(ExecutableStatus.Non_Executable);
+					else if(con.getConstructType()==WFConstructsType.OR_JOIN || con.getConstructType()==WFConstructsType.XOR_JOIN)
+						continue;
+					else{
 						if(isE==true || isPE==true)
 							return ExecutableStatus.Potential_Executable;
 					}
-					
-				}
-				else
-				{
-					ExecutableStatus _status=getExecutionStatus(t);
-					t.setStatus(_status);
-					if(_status==ExecutableStatus.Non_Executable)
-					{
-						isNE=true;
-						if (isE==true || isPE==true)
-							return ExecutableStatus.Potential_Executable;
-					}
-					else if(_status==ExecutableStatus.Potential_Executable)
-						isPE=true;
-					else if(_status==ExecutableStatus.Executable)
-						isE=true;
+				}else if(_status == ExecutableStatus.Potential_Executable){
+					isPE = true;
+				}else{
+					isE = true;
 				}
 			}
-			if(isE==false && isPE==false)             			  // When all childs are not executable
-				return ExecutableStatus.Non_Executable;
-			else if(isE==true && isPE==false && isNE==false)  	  // When all childs are executable    
-				return ExecutableStatus.Executable;
-			else if (isPE==true || (isE==true && isNE==true))     // when any child is potential executable
-				return ExecutableStatus.Potential_Executable;
-		}
-		return ExecutableStatus.Non_Executable;
+		} // End of For loop
+		if (isE == true && isPE==false && isNE == false)
+			return ExecutableStatus.Executable;
+		else if(isPE == true || isE==true)
+			return ExecutableStatus.Potential_Executable;
+		else
+			return ExecutableStatus.Non_Executable;
 	}
 	/**
-	 * This function triggers the recursive function and then finally display the
-	 * output that whether workflow is executable or not.
+	 * This function triggers the recursive function for checking the execution status of the workflow.
+	 * @return The execution status of the workflow.
 	 */
-	public ExecutableStatus checkWFExecutable()
+	private ExecutableStatus checkWFExecutable()
 	{
-		WFConstruct main=constructs.get(0);
+		WFConstruct main=null;
+		if(constructs.size()>0){
+			main=constructs.get(0);
+		}else{
+			System.out.println("The provided XML file doesn't contain workflow node.");
+			System.exit(1);
+		}
 		return getExecutionStatus(main);
 	}
 	/**
@@ -352,13 +298,15 @@ public class Workflow
 			}
 		}catch(Exception ex)
 		{
-			System.out.println("In Exception.");
+			System.out.println("An unhandeld exception has occured while retreiving child nodes of workflow node. The full details are provided below,");
+			ex.printStackTrace();
+			System.exit(1);
 		}
 	}
 	/**
 	 * This is a recursive function that is triggered from the "getConstruct" function 
-	 * to read the child of input construct parameter and further this call itself to
-	 *  read the child elements of a child.
+	 * to read the child of given construct (Node). This further call itself to read the child elements of a child.
+	 * @param parentConstruct The node, for which the child elements has to be obtained.
 	 */
 	public void getChildConstructs(WFConstruct parentConstruct) 
 	{
@@ -392,7 +340,9 @@ public class Workflow
 			}
 		}catch(Exception ex)
 		{
-			
+			System.out.println("An unhandled exception has occured, while reading the child constructs of " + parentConstruct.getName() + ". The full error details are provided below \n" );
+			ex.printStackTrace();
+			System.exit(1);
 		}
 	}
 }
